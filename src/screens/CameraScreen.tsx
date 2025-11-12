@@ -14,16 +14,16 @@ import {
 } from 'react-native-vision-camera';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useNavigation } from '@react-navigation/native';
+import RNFS from 'react-native-fs';
+import { Video } from 'react-native-compressor';
 
 export default function CameraScreen() {
   const camera = useRef<Camera>(null);
   const navigation = useNavigation<any>();
 
-  // Permissions
   const { hasPermission: hasCameraPermission, requestPermission: requestCameraPermission } = useCameraPermission();
   const { hasPermission: hasMicPermission, requestPermission: requestMicPermission } = useMicrophonePermission();
 
-  // States
   const [isRecording, setIsRecording] = useState(false);
   const isRecordingRef = useRef(false);
   const [isPhotoMode, setIsPhotoMode] = useState(true);
@@ -33,7 +33,7 @@ export default function CameraScreen() {
 
   const device = useCameraDevice(cameraPosition);
 
-  // Request permissions
+  // Permissions
   useEffect(() => {
     (async () => {
       const camGranted = hasCameraPermission || await requestCameraPermission();
@@ -46,26 +46,56 @@ export default function CameraScreen() {
     })();
   }, [hasCameraPermission, requestCameraPermission, hasMicPermission, requestMicPermission]);
 
-  if (!device) {
-    return (
-      <View style={styles.center}>
-        <Text style={{ color: '#fff' }}>Loading camera...</Text>
-      </View>
-    );
-  }
+  const getFileSizeMB = async (filePath: string) => {
+    try {
+      const stats = await RNFS.stat(filePath);
+      const sizeMB = (Number(stats.size) / (1024 * 1024)).toFixed(2);
+      return sizeMB;
+    } catch (err) {
+      console.error("❌ Error getting file size:", err);
+      return '0';
+    }
+  };
+
+  const compressVideo = async (uri: string) => {
+    try {
+      const sizeBefore = await getFileSizeMB(uri);
+      console.log(`📹 Original video size: ${sizeBefore} MB`);
+
+      const compressedUri = await Video.compress(
+        uri,
+        {
+          //compressionMethod: 'auto', // uses smart quality & bitrate targeting
+          //minimumFileSizeForCompress: 2, // skip compression for <2MB
+          //maxSize: 1080, // HD output
+
+          compressionMethod: 'auto',
+          maxSize: 720, // 720p enough for short social clips
+          minimumFileSizeForCompress: 3, // MB
+    bitrate: 4_000_000, // upper limit if auto mode overshoots
+        },
+        progress => console.log(`⚙️ Compression progress: ${progress * 100}%`)
+      );
+
+      const sizeAfter = await getFileSizeMB(compressedUri);
+      console.log(`✅ Compressed video size: ${sizeAfter} MB`);
+
+      return compressedUri;
+    } catch (error) {
+      console.error('❌ Compression failed:', error);
+      return uri; // fallback to original
+    }
+  };
 
   const handleCapture = async () => {
     if (!camera.current) return;
 
     try {
       if (isPhotoMode) {
-        // Take photo
         const photo = await camera.current.takePhoto({ flash });
         navigation.navigate('Preview', { type: 'photo', uri: `file://${photo.path}` });
       } else {
-        // Video recording
         if (isRecordingRef.current) {
-          // Stop recording
           if (recordingTimeout.current) {
             clearTimeout(recordingTimeout.current);
             recordingTimeout.current = null;
@@ -74,22 +104,24 @@ export default function CameraScreen() {
           setIsRecording(false);
           isRecordingRef.current = false;
         } else {
-          // Start recording
           setIsRecording(true);
           isRecordingRef.current = true;
 
           await camera.current.startRecording({
-            fileType: 'mp4',              // <-- force .mp4 output
-            videoCodec: 'h264',           // safe, widely supported codec
-            onRecordingFinished: (video) => {
+            fileType: 'mp4',
+            videoCodec: 'h264',
+            onRecordingFinished: async (video) => {
               if (recordingTimeout.current) clearTimeout(recordingTimeout.current);
               setIsRecording(false);
               isRecordingRef.current = false;
-          
-              const uri = video.path.startsWith('file://') 
-                            ? video.path 
-                            : `file://${video.path}`;
-              navigation.navigate('Preview', { type: 'video', uri });
+
+              let uri = video.path.startsWith('file://') ? video.path : `file://${video.path}`;
+              console.log("🎬 Video saved at:", uri);
+
+              // Compress video here
+              const compressedUri = await compressVideo(uri);
+
+              navigation.navigate('Preview', { type: 'video', uri: compressedUri });
             },
             onRecordingError: (error) => {
               if (recordingTimeout.current) clearTimeout(recordingTimeout.current);
@@ -99,8 +131,7 @@ export default function CameraScreen() {
               Alert.alert('Recording Error', error.message || 'Unable to record video.');
             },
           });
-          
-          // Auto stop after 10 seconds
+
           recordingTimeout.current = setTimeout(async () => {
             if (isRecordingRef.current && camera.current) {
               await camera.current.stopRecording();
@@ -119,7 +150,6 @@ export default function CameraScreen() {
     }
   };
 
-    // Permission + device checks (above return)
   if (!device) {
     return (
       <View style={styles.center}>
@@ -145,13 +175,11 @@ export default function CameraScreen() {
         isActive={true}
         photo={true}
         video={true}
-        audio={true} // important for microphone
+        audio={true}
         torch={flash}
       />
 
-      {/* Controls */}
       <View style={styles.controls}>
-        {/* Top Controls */}
         <View style={styles.topControls}>
           <TouchableOpacity
             onPress={() => setFlash(prev => (prev === 'off' ? 'on' : 'off'))}
@@ -166,7 +194,6 @@ export default function CameraScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Bottom Controls */}
         <View style={styles.bottomControls}>
           <TouchableOpacity onPress={() => setIsPhotoMode(true)}>
             <Text style={[styles.modeText, isPhotoMode && styles.activeText]}>Photo</Text>
