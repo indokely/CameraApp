@@ -12,6 +12,9 @@ linkage = ENV['USE_FRAMEWORKS']
 if linkage != nil
   Pod::UI.puts "Configuring Pod with #{linkage}ally linked Frameworks".green
   use_frameworks! :linkage => linkage.to_sym
+else
+  # ✅ Required for VisionCamera, Reanimated & Compressor
+  use_frameworks! :linkage => :static
 end
 
 target 'CameraApp' do
@@ -20,15 +23,40 @@ target 'CameraApp' do
   use_react_native!(
     :path => config[:reactNativePath],
     # An absolute path to your application root.
-    :app_path => "#{Pod::Config.instance.installation_root}/.."
+    :app_path => "#{Pod::Config.instance.installation_root}/..",
+    :hermes_enabled => true # ✅ Hermes is recommended by RN 0.82+
   )
+
+  # 🔹 VisionCamera (core camera)
+  pod 'react-native-vision-camera', :path => '../node_modules/react-native-vision-camera'
+
+  # 🔹 Reanimated (required for animations + VisionCamera deps)
+  pod 'RNReanimated', :path => '../node_modules/react-native-reanimated'
+
+  # 🔹 FastImage (for optimized image caching)
+  pod 'react-native-fast-image', :path => '../node_modules/react-native-fast-image'
+
+  # 🔹 Video Player (used in Feed, Preview, ViewMedia)
+  pod 'react-native-video', :path => '../node_modules/react-native-video'
+
+  # 🔹 Compressor (for image/video compression)
+  pod 'react-native-compressor', :path => '../node_modules/react-native-compressor'
+
+  # ✅ Auto-link other native modules & Flipper (Dev only)
+  use_flipper!({ 'Flipper' => '0.201.0' }) unless ENV['CONFIGURATION'] == 'Release'
 
   post_install do |installer|
     react_native_post_install(
       installer,
       config[:reactNativePath],
       :mac_catalyst_enabled => false,
-      # :ccache_enabled => true
     )
+
+    # ✅ Fix for Xcode 15 + Flipper arch issues
+    installer.pods_project.targets.each do |target|
+      target.build_configurations.each do |config|
+        config.build_settings["EXCLUDED_ARCHS[sdk=iphonesimulator*]"] = "arm64"
+      end
+    end
   end
 end
