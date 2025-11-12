@@ -15,14 +15,16 @@ import {
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useNavigation } from '@react-navigation/native';
 import RNFS from 'react-native-fs';
-import { Video } from 'react-native-compressor';
+import { compressVideoOffMainThread } from '../utils/videoUtils'; // ✅ imported here
 
 export default function CameraScreen() {
   const camera = useRef<Camera>(null);
   const navigation = useNavigation<any>();
 
-  const { hasPermission: hasCameraPermission, requestPermission: requestCameraPermission } = useCameraPermission();
-  const { hasPermission: hasMicPermission, requestPermission: requestMicPermission } = useMicrophonePermission();
+  const { hasPermission: hasCameraPermission, requestPermission: requestCameraPermission } =
+    useCameraPermission();
+  const { hasPermission: hasMicPermission, requestPermission: requestMicPermission } =
+    useMicrophonePermission();
 
   const [isRecording, setIsRecording] = useState(false);
   const isRecordingRef = useRef(false);
@@ -33,60 +35,32 @@ export default function CameraScreen() {
 
   const device = useCameraDevice(cameraPosition);
 
-  // Permissions
+  // ✅ Permissions
   useEffect(() => {
     (async () => {
-      const camGranted = hasCameraPermission || await requestCameraPermission();
-      const micGranted = hasMicPermission || await requestMicPermission();
+      const camGranted = hasCameraPermission || (await requestCameraPermission());
+      const micGranted = hasMicPermission || (await requestMicPermission());
       if (camGranted && micGranted) {
-        console.log("✅ Camera and Mic permissions active");
+        console.log('✅ Camera and Mic permissions active');
       }
       if (!camGranted) Alert.alert('Camera permission is required!');
       if (!micGranted) Alert.alert('Microphone permission is required!');
     })();
   }, [hasCameraPermission, requestCameraPermission, hasMicPermission, requestMicPermission]);
 
+  // 🧮 Get file size helper
   const getFileSizeMB = async (filePath: string) => {
     try {
       const stats = await RNFS.stat(filePath);
       const sizeMB = (Number(stats.size) / (1024 * 1024)).toFixed(2);
       return sizeMB;
     } catch (err) {
-      console.error("❌ Error getting file size:", err);
+      console.error('❌ Error getting file size:', err);
       return '0';
     }
   };
 
-  const compressVideo = async (uri: string) => {
-    try {
-      const sizeBefore = await getFileSizeMB(uri);
-      console.log(`📹 Original video size: ${sizeBefore} MB`);
-
-      const compressedUri = await Video.compress(
-        uri,
-        {
-          //compressionMethod: 'auto', // uses smart quality & bitrate targeting
-          //minimumFileSizeForCompress: 2, // skip compression for <2MB
-          //maxSize: 1080, // HD output
-
-          compressionMethod: 'auto',
-          maxSize: 720, // 720p enough for short social clips
-          minimumFileSizeForCompress: 3, // MB
-    bitrate: 4_000_000, // upper limit if auto mode overshoots
-        },
-        progress => console.log(`⚙️ Compression progress: ${progress * 100}%`)
-      );
-
-      const sizeAfter = await getFileSizeMB(compressedUri);
-      console.log(`✅ Compressed video size: ${sizeAfter} MB`);
-
-      return compressedUri;
-    } catch (error) {
-      console.error('❌ Compression failed:', error);
-      return uri; // fallback to original
-    }
-  };
-
+  // 🎥 Handle capture logic
   const handleCapture = async () => {
     if (!camera.current) return;
 
@@ -116,10 +90,17 @@ export default function CameraScreen() {
               isRecordingRef.current = false;
 
               let uri = video.path.startsWith('file://') ? video.path : `file://${video.path}`;
-              console.log("🎬 Video saved at:", uri);
+              console.log('🎬 Video saved at:', uri);
 
-              // Compress video here
-              const compressedUri = await compressVideo(uri);
+              // ✅ Compress video off the main JS thread
+              console.log('📦 Starting compression off main thread...');
+              const compressedUri = await compressVideoOffMainThread(uri, progress => {
+                console.log(`⚙️ Compression progress: ${(progress * 100).toFixed(1)}%`);
+              });
+
+              const before = await getFileSizeMB(uri);
+              const after = await getFileSizeMB(compressedUri);
+              console.log(`📹 Size Before: ${before} MB | After: ${after} MB`);
 
               navigation.navigate('Preview', { type: 'video', uri: compressedUri });
             },
@@ -132,6 +113,7 @@ export default function CameraScreen() {
             },
           });
 
+          // Auto-stop recording after 10 seconds
           recordingTimeout.current = setTimeout(async () => {
             if (isRecordingRef.current && camera.current) {
               await camera.current.stopRecording();
