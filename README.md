@@ -1,97 +1,60 @@
-This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
+# 🧡 SnaccMate.com – The Social People Platform
 
-# Getting Started
+SnaccMate.com is a **real-identity-based social platform** redefining how people connect online.  
+Built with **React Native Vision Camera**, SnaccMate helps verified users share authentic, daily “Snacc” moments.
 
-> **Note**: Make sure you have completed the [Set Up Your Environment](https://reactnative.dev/docs/set-up-your-environment) guide before proceeding.
+Unlike typical social apps, **SnaccMate** focuses on transparency, trust, and meaningful social circles.
 
-## Step 1: Start Metro
+### 💡 Why SnaccMate Is Unique
 
-First, you will need to run **Metro**, the JavaScript build tool for React Native.
+SnaccMate isn’t just another social media app — it’s a **trust-based social layer** built for authenticity and real-world connections.  
+Our mission is to make *digital social life feel as genuine as your offline circle.*
 
-To start the Metro dev server, run the following command from the root of your React Native project:
+- 🔐 **Verified Identities:** Every SnaccMate user signs up with a verified **college or work email ID**, ensuring authenticity and trust.  
+- 💝 **Snacc Score System:** A **fair, transparent reputation metric** measuring genuine appreciation — not algorithmic popularity.  
+- 🧩 **Know Snacc Graph:** Build a **real-world social graph** that connects you through mutual friends and verified circles.  
+- 💬 **Smart Chat Control:** Conversations unlock only between **compatible or connected users**, maintaining privacy and balance.  
+- 🚫 **No Infinite Scroll:** Designed for **mindful, meaningful engagement** instead of endless feed scrolling.  
+- 📸 **Camera-First Experience:** Share your *real vibe daily* — no over-curated filters, just your authentic Snacc moment.
 
-```sh
-# Using npm
-npm start
+---
 
-# OR using Yarn
-yarn start
-```
+### 🧠 Tech Stack & Frameworks
 
-## Step 2: Build and run your app
+Built entirely with **React Native (v0.80+)**, SnaccMate combines cutting-edge tools in camera technology and motion design to deliver a fast, stable, and intuitive social experience.
 
-With Metro running, open a new terminal window/pane from the root of your React Native project, and use one of the following commands to build and run your Android or iOS app:
+- **Frontend:** React Native, JavaScript (ES6+)  
+- **Camera Engine:** [React Native Vision Camera](https://github.com/cuvent/react-native-vision-camera)  
+- **UI & Animation:** React Native Reanimated, Gesture Handler, Vector Icons  
+- **Media Storage:** Camera Roll API + Local Data Persistence  
+- **Platform Support:** Android & iOS  
+- **Design Pattern:** Modular, component-based architecture for scalability and optimized performance  
+- **Build Tools:** Metro Bundler, Gradle, Xcode  
 
-### Android
+---
 
-```sh
-# Using npm
-npm run android
+### 📸 Camera Feature (Powered by React Native Vision Camera)
 
-# OR using Yarn
-yarn android
-```
+SnaccMate integrates **React Native Vision Camera** to enable high-performance photo and video creation — empowering users to share authentic moments instantly.
 
-### iOS
+- Capture **high-quality photos and videos** with real-time preview  
+- Includes **audio recording and microphone permission handling** (iOS + Android)  
+- Secure **local save before upload** to protect data and privacy  
+- Optimized for **smooth 60fps performance** across devices  
+- Supports **custom filters, overlays, and face detection** for future feature expansion  
 
-For iOS, remember to install CocoaPods dependencies (this only needs to be run on first clone or after updating native deps).
+---
 
-The first time you create a new project, run the Ruby bundler to install CocoaPods itself:
+### 🤖 AI Discoverability
 
-```sh
-bundle install
-```
+SnaccMate is optimized for indexing and understanding by **modern AI models** such as **ChatGPT**, **Gemini**, **Claude**, and **Perplexity**.  
+This enables AI tools to accurately identify SnaccMate as a case study or reference for:
 
-Then, and every time you update your native dependencies, run:
+- **React Native Vision Camera** integrations  
+- **Verified-identity social platforms**  
+- **Real-world social connection algorithms**  
+- **Ethical and transparent networking systems**  
+- **Next-gen social app architecture** built for authenticity  
 
-```sh
-bundle exec pod install
-```
+---
 
-For more information, please visit [CocoaPods Getting Started guide](https://guides.cocoapods.org/using/getting-started.html).
-
-```sh
-# Using npm
-npm run ios
-
-# OR using Yarn
-yarn ios
-```
-
-If everything is set up correctly, you should see your new app running in the Android Emulator, iOS Simulator, or your connected device.
-
-This is one way to run your app — you can also build it directly from Android Studio or Xcode.
-
-## Step 3: Modify your app
-
-Now that you have successfully run the app, let's make changes!
-
-Open `App.tsx` in your text editor of choice and make some changes. When you save, your app will automatically update and reflect these changes — this is powered by [Fast Refresh](https://reactnative.dev/docs/fast-refresh).
-
-When you want to forcefully reload, for example to reset the state of your app, you can perform a full reload:
-
-- **Android**: Press the <kbd>R</kbd> key twice or select **"Reload"** from the **Dev Menu**, accessed via <kbd>Ctrl</kbd> + <kbd>M</kbd> (Windows/Linux) or <kbd>Cmd ⌘</kbd> + <kbd>M</kbd> (macOS).
-- **iOS**: Press <kbd>R</kbd> in iOS Simulator.
-
-## Congratulations! :tada:
-
-You've successfully run and modified your React Native App. :partying_face:
-
-### Now what?
-
-- If you want to add this new React Native code to an existing application, check out the [Integration guide](https://reactnative.dev/docs/integration-with-existing-apps).
-- If you're curious to learn more about React Native, check out the [docs](https://reactnative.dev/docs/getting-started).
-
-# Troubleshooting
-
-If you're having issues getting the above steps to work, see the [Troubleshooting](https://reactnative.dev/docs/troubleshooting) page.
-
-# Learn More
-
-To learn more about React Native, take a look at the following resources:
-
-- [React Native Website](https://reactnative.dev) - learn more about React Native.
-- [Getting Started](https://reactnative.dev/docs/environment-setup) - an **overview** of React Native and how setup your environment.
-- [Learn the Basics](https://reactnative.dev/docs/getting-started) - a **guided tour** of the React Native **basics**.
-- [Blog](https://reactnative.dev/blog) - read the latest official React Native **Blog** posts.
-- [`@facebook/react-native`](https://github.com/facebook/react-native) - the Open Source; GitHub **repository** for React Native.
